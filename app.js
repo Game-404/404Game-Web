@@ -1,0 +1,59 @@
+const authKey='404-discord-auth';
+if(!sessionStorage.getItem(authKey)){window.location.replace('./login.html?next=panel');}
+const views=[...document.querySelectorAll('.view')];
+const navItems=[...document.querySelectorAll('[data-view]')];
+const toast=document.querySelector('#toast');
+const modal=document.querySelector('#loginModal');
+const languageToggle=document.querySelector('#languageToggle');
+const themeToggle=document.querySelector('#themeToggle');
+let toastTimer;
+let currentLanguage=localStorage.getItem('404-language')||'vi';
+let currentTheme=localStorage.getItem('404-theme')||'dark';
+
+const viewLabels={vi:{overview:'Tổng quan',settings:'Cấu hình bot',wiki:'Wiki hướng dẫn',changelog:'Change log',admin:'Admin Studio'},en:{overview:'Overview',settings:'Bot settings',wiki:'Knowledge base',changelog:'Change log',admin:'Admin Studio'}};
+const copy={
+'Tổng quan':'Overview','Cấu hình bot':'Bot settings','Wiki hướng dẫn':'Knowledge base','Change log':'Change log','Admin Studio':'Admin Studio',
+'WORKSPACE':'WORKSPACE','1 máy chủ đã kết nối':'1 server connected','THỨ TƯ, 02 THÁNG 10, 2026':'WEDNESDAY, OCTOBER 02, 2026',
+'Chào mừng trở lại,':'Welcome back,','đạo hữu.':'cultivator.','Mọi thứ đang vận hành ổn định. Đây là trạng thái mới nhất của bot trên máy chủ.':'Everything is running smoothly. Here is the latest server status.',
+'＋ Mời bot vào server':'＋ Invite bot to server','Bot đang hoạt động bình thường':'Bot is operating normally','Đồng bộ lần cuối 2 phút trước · latency 48ms':'Last sync 2 minutes ago · 48ms latency','ONLINE':'ONLINE',
+'THÀNH VIÊN ĐỒNG BỘ':'SYNCED MEMBERS','TƯƠNG TÁC HÔM NAY':'INTERACTIONS TODAY','THỜI GIAN HOẠT ĐỘNG':'UPTIME',
+'so với tuần trước':'vs last week','so với hôm qua':'vs yesterday','trong 30 ngày':'in 30 days','HOẠT ĐỘNG GẦN ĐÂY':'RECENT ACTIVITY','Lệnh phổ biến':'Popular commands','Quản lý lệnh →':'Manage commands →',
+'Xem hồ sơ tu luyện':'View cultivation profile','Kiểm tra cảnh giới':'Check realm','Thông tin tông môn':'Sect information','Mở danh sách lệnh':'Open command list','lần dùng':'uses',
+'HỆ THỐNG':'SYSTEM','Nhật ký hoạt động':'Activity log','LIVE':'LIVE','Đồng bộ thành viên hoàn tất':'Member sync completed','128 thành viên · 2 phút trước':'128 members · 2 minutes ago','Đã đổi tên hiển thị tông môn':'Sect display name changed','Baolam Nguyen · 41 phút trước':'Baolam Nguyen · 41 minutes ago','Cập nhật cấu hình thông báo':'Notification settings updated','Bot tự động · 1 giờ trước':'Automated bot · 1 hour ago',
+'Chưa kết nối máy chủ?':'Not connected yet?','Mời Tu Tiên Bot vào Discord để bắt đầu quản lý.':'Invite Tu Tiên Bot to Discord to get started.','Bắt đầu kết nối':'Start connecting',
+'BOT CONFIGURATION':'BOT CONFIGURATION','Cấu hình':'Configure your','tông môn.':'sect.','Mỗi thay đổi được lưu theo từng máy chủ và áp dụng ngay trong Discord.':'Changes are stored per server and apply instantly in Discord.','Đã lưu 2 phút trước':'Saved 2 minutes ago','Đã lưu vừa xong':'Saved just now',
+'Cơ bản':'General','Lệnh bot':'Bot commands','Ngôn ngữ':'Language','HIỂN THỊ':'IDENTITY','Thông tin tông môn':'Sect identity','Tên hiển thị chỉ dùng trong các tin nhắn của bot.':'This name appears in bot messages only.','Tên tông môn':'Sect name','Tối đa 80 ký tự':'Up to 80 characters',
+'TỰ ĐỘNG HÓA':'AUTOMATION','Trải nghiệm thành viên':'Member experience','Bật hoặc tắt các tính năng nền của bot.':'Turn background bot features on or off.','Đồng bộ thành viên':'Member sync','Tự động cập nhật khi có người tham gia hoặc rời server':'Update when members join or leave','Thông báo chào mừng':'Welcome messages','Gửi lời chào tại kênh được chọn':'Send a greeting in the selected channel','Hiển thị bảng xếp hạng':'Show leaderboard','Cho phép thành viên xem thứ hạng tu luyện':'Let members view cultivation rankings','Lưu thay đổi':'Save changes',
+'KNOWLEDGE BASE':'KNOWLEDGE BASE','Wiki cho':'Knowledge base for','đồng môn.':'fellow cultivators.','Hướng dẫn rõ ràng để mọi thành viên bắt đầu tu luyện trong vài phút.':'Clear guides to help every member start cultivating in minutes.','Tìm trong wiki...':'Search the wiki...','BẮT ĐẦU TẠI ĐÂY':'START HERE','Con đường tu luyện nhập môn':'The beginner cultivation path','Tạo nhân vật, khám phá cảnh giới và hiểu cách tông môn vận hành.':'Create a character, explore realms and understand how your sect works.','Đọc hướng dẫn →':'Read the guide →','Cài đặt bot':'Bot setup','Quyền Discord tối thiểu và cách kết nối máy chủ.':'Minimum Discord permissions and server connection.','Xem bài viết →':'Read article →','Lệnh Discord':'Discord commands','Danh sách lệnh và ví dụ dùng nhanh cho thành viên.':'Command list and quick examples for members.','Cảnh giới & tu vi':'Realms & cultivation','Giải thích hệ thống tiến triển hiện tại của Tu Tiên Bot.':'How progression currently works in Tu Tiên Bot.',
+'RELEASE NOTES':'RELEASE NOTES','Nhật ký ':'Release ','thay đổi.':'notes.','Minh bạch từng cập nhật để chủ server luôn biết bot đang làm gì.':'A transparent record of every update.','v0.1.0 · hiện tại':'v0.1.0 · current','MỚI':'NEW','Ra mắt 404 Control':'404 Control launch','Panel quản lý bot với dashboard trạng thái, cấu hình theo máy chủ, wiki và khu vực Admin Studio.':'Bot management panel with status dashboard, server settings, wiki and Admin Studio.','Đăng nhập Discord và luồng mời bot':'Discord login and bot invite flow','Cấu hình tên tông môn, đồng bộ thành viên và chào mừng':'Sect name, member sync and welcome settings','Wiki song ngữ chuẩn bị sẵn cho cộng đồng':'Bilingual wiki ready for the community','NỀN TẢNG':'FOUNDATION','Tu Tiên Bot v0.1.0':'Tu Tiên Bot v0.1.0','Discord bot và API Fastify bảo vệ bằng bearer key, lưu trữ SQLite bền vững.':'Discord bot and Fastify API protected by a bearer key with durable SQLite storage.',
+'OWNER ACCESS':'OWNER ACCESS','Admin':'Admin','Studio.':'Studio.','Theo dõi sức khỏe bot, tông môn và các thao tác nhạy cảm ở một nơi.':'Monitor bot health, sects and sensitive actions in one place.','BOT INSTANCES':'BOT INSTANCES','Đang hoạt động':'Operating','TÔNG MÔN ĐANG DÙNG':'ACTIVE SECTS','Không giới hạn ở bản beta':'Unlimited in beta','API REQUESTS / 24H':'API REQUESTS / 24H','so với hôm qua':'vs yesterday','HEALTH CHECK':'HEALTH CHECK','Sức khỏe dịch vụ':'Service health','ALL SYSTEMS GO':'ALL SYSTEMS GO','Discord Gateway':'Discord Gateway','Fastify API':'Fastify API','SQLite persistence':'SQLite persistence','WAL active':'WAL active','AUDIT TRAIL':'AUDIT TRAIL','Thao tác gần đây':'Recent actions','Xem tất cả →':'View all →','Đổi tên tông môn thành “Thanh Vân Tông”':'Changed sect name to “Thanh Vân Tông”','Đồng bộ 128 thành viên':'Synced 128 members',
+'Chủ sở hữu':'Owner','Đăng nhập bằng Discord':'Sign in with Discord','Kết nối tài khoản Discord để xác nhận quyền quản lý máy chủ. Panel không lưu mật khẩu của bạn.':'Connect Discord to verify server management access. The panel never stores your password.','◈ Tiếp tục với Discord':'◈ Continue with Discord','Demo UI · endpoint OAuth sẽ trỏ tới':'Demo UI · OAuth endpoint will point to',
+'Đang mở luồng mời bot Discord…':'Opening the Discord bot invite flow…','Demo UI: OAuth sẽ chuyển tới /auth/discord':'Demo UI: OAuth will redirect to /auth/discord','Bạn đang quản lý Thanh Vân Tông':'You are managing Thanh Vân Tông','Đã lưu cấu hình cho Thanh Vân Tông':'Saved settings for Thanh Vân Tông','Đang xem nhóm “':'Viewing “','”':'”','Demo UI: OAuth Discord sẽ được kết nối ở backend.':'Demo UI: Discord OAuth will connect in the backend.'
+};
+
+const lookup={vi:{},en:{}};
+Object.entries(copy).forEach(([vi,en])=>{lookup.vi[vi]=vi;lookup.en[vi]=en;});
+Object.entries(copy).forEach(([vi,en])=>{lookup.vi[en]=vi;});
+function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),2600);}
+function translate(root,target){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(node=>{if(node.parentElement?.closest('script,style'))return;const raw=node.nodeValue||'';const key=raw.trim();if(!key)return;const translated=lookup[target][key];if(translated!==undefined)node.nodeValue=raw.replace(key,translated);});}
+function setLanguage(lang){if(lang===currentLanguage)return;translate(document.body,lang);currentLanguage=lang;localStorage.setItem('404-language',lang);document.documentElement.lang=lang;languageToggle.textContent=lang==='vi'?'VI / EN':'EN / VI';languageToggle.setAttribute('aria-label',lang==='vi'?'Đổi ngôn ngữ':'Switch language');const active=document.querySelector('.view.is-visible')?.dataset.page||'overview';document.querySelector('#breadcrumbCurrent').textContent=viewLabels[lang][active];showToast(lang==='vi'?'Đã chuyển sang tiếng Việt':'Switched to English');}
+function openView(view){views.forEach(item=>item.classList.toggle('is-visible',item.dataset.page===view));navItems.forEach(item=>item.classList.toggle('is-active',item.dataset.view===view));document.querySelector('#breadcrumbCurrent').textContent=viewLabels[currentLanguage][view];window.scrollTo({top:0,behavior:'smooth'});}
+function setTheme(theme){currentTheme=theme;document.documentElement.dataset.theme=theme;localStorage.setItem('404-theme',theme);themeToggle.textContent=theme==='dark'?'☀':'☾';themeToggle.setAttribute('aria-label',theme==='dark'?'Switch to light mode':'Switch to dark mode');}
+navItems.forEach(item=>item.addEventListener('click',()=>openView(item.dataset.view)));
+document.querySelectorAll('.text-button[data-view]').forEach(item=>item.addEventListener('click',()=>openView(item.dataset.view)));
+document.querySelector('#inviteButton').addEventListener('click',()=>{showToast(currentLanguage==='vi'?'Đang mở luồng mời bot Discord…':'Opening the Discord bot invite flow…');setTimeout(()=>{window.location.href='./login.html?next=invite';},700);});
+document.querySelector('#inviteStrip').addEventListener('click',()=>document.querySelector('#inviteButton').click());
+document.querySelector('#serverSwitcher').addEventListener('click',()=>showToast(currentLanguage==='vi'?'Bạn đang quản lý Thanh Vân Tông':'You are managing Thanh Vân Tông'));
+document.querySelector('#saveSettings').addEventListener('click',()=>{document.querySelector('#saveState').textContent=currentLanguage==='vi'?'Đã lưu vừa xong':'Saved just now';showToast(currentLanguage==='vi'?'Đã lưu cấu hình cho Thanh Vân Tông':'Saved settings for Thanh Vân Tông');});
+document.querySelectorAll('.settings-tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.settings-tab').forEach(item=>item.classList.remove('is-active'));tab.classList.add('is-active');showToast((currentLanguage==='vi'?'Đang xem nhóm “':'Viewing “')+tab.textContent+'”');}));
+languageToggle.addEventListener('click',()=>setLanguage(currentLanguage==='vi'?'en':'vi'));
+themeToggle.addEventListener('click',()=>setTheme(currentTheme==='dark'?'light':'dark'));
+document.querySelector('#profileButton').addEventListener('click',()=>{modal.hidden=false;});
+document.querySelector('#closeModal').addEventListener('click',()=>{modal.hidden=true;});
+modal.addEventListener('click',event=>{if(event.target===modal)modal.hidden=true;});
+document.querySelector('#discordLogin').addEventListener('click',()=>{modal.hidden=true;showToast(currentLanguage==='vi'?'Demo UI: OAuth Discord sẽ được kết nối ở backend.':'Demo UI: Discord OAuth will connect in the backend.');});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')modal.hidden=true;});
+setTheme(currentTheme);
+document.documentElement.lang=currentLanguage;
+if(currentLanguage==='en')translate(document.body,'en');languageToggle.textContent=currentLanguage==='vi'?'VI / EN':'EN / VI';languageToggle.setAttribute('aria-label',currentLanguage==='vi'?'Đổi ngôn ngữ':'Switch language');
+
